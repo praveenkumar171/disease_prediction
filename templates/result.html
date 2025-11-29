@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results - Disease Prediction System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, rgb(0,0,0) 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #012811, #336a6a);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .result-container {
+            padding: 40px;
+        }
+        
+        .prediction-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #27ae60;
+        }
+        
+        .prediction-card h2 {
+            color: #012811;
+            margin-bottom: 15px;
+            font-size: 2em;
+        }
+        
+        .disease-description {
+            margin: 15px 0;
+            font-size: 1.1em;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .chart-container {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        #probabilityChart {
+            max-height: 400px;
+        }
+        
+        #allDiseasesChart {
+            max-height: 400px;
+        }
+        
+        .symptoms-summary {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        
+        .symptoms-summary h3 {
+            color: #012811;
+            margin-bottom: 15px;
+        }
+        
+        .symptoms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .symptom-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #3498db;
+        }
+        
+        .symptom-item strong {
+            color: #012811;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .symptom-item span {
+            color: #555;
+        }
+        
+        .probability-list {
+            display: grid;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .probability-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .probability-bar {
+            flex-grow: 1;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .risk-indicator {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 15px;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .high-risk { background: #e74c3c; color: white; }
+        .medium-risk { background: #f39c12; color: white; }
+        .low-risk { background: #27ae60; color: white; }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .disclaimer {
+            margin-top: 40px;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .disclaimer h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .disclaimer p {
+            color: #856404;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Prediction Results</h1>
+            <p>AI-powered disease diagnosis based on your symptoms</p>
+        </div>
+        
+        <div class="result-container">
+            <!-- Primary Prediction -->
+            <div class="prediction-card">
+                <h2>{{ predicted_disease }}</h2>
+                <p class="disease-description">{{ disease_info[predicted_disease] }}</p>
+            </div>
+            
+            <!-- Symptoms Summary -->
+            <div class="symptoms-summary">
+                <h3>📋 Your Reported Symptoms</h3>
+                <div class="symptoms-grid">
+                    {% for symptom in symptoms_summary %}
+                    <div class="symptom-item">
+                        {% if ':' in symptom %}
+                            <strong>{{ symptom.split(':')[0] }}</strong>
+                            <span>{{ symptom.split(':', 1)[1].strip() }}</span>
+                        {% else %}
+                            <strong>{{ symptom }}</strong>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <!-- Top 3 Predictions Chart -->
+                <div class="chart-container">
+                    <h3>📊 Top 3 Disease Probabilities</h3>
+                    <canvas id="probabilityChart"></canvas>
+                </div>
+                
+                <!-- All Diseases Chart -->
+                <div class="chart-container">
+                    <h3>🔍 All Disease Predictions</h3>
+                    <canvas id="allDiseasesChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Detailed Probability List -->
+            <div style="margin-top: 40px;">
+                <h3 style="color: #2c3e50; margin-bottom: 20px;">📈 Detailed Probability Distribution</h3>
+                <div class="probability-list">
+                    {% if top_predictions and top_predictions|length > 0 %}
+                        {% for disease, probability in top_predictions %}
+                        <div class="probability-item">
+                            <span style="flex: 0 0 25%; font-weight: bold; color: #2c3e50;">{{ disease }}</span>
+                            <div class="probability-bar">
+                                <div class="bar-fill" style="width: {{ probability }}%;"></div>
+                            </div>
+                            <span style="font-weight: bold; color: #2c3e50; flex: 0 0 70px; text-align: right;">{{ probability }}%</span>
+                            
+                            {% if probability > 70 %}
+                                <span class="risk-indicator high-risk">HIGH RISK</span>
+                            {% elif probability > 40 %}
+                                <span class="risk-indicator medium-risk">MEDIUM</span>
+                            {% else %}
+                                <span class="risk-indicator low-risk">LOW</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #e74c3c; padding: 20px; text-align: center;">
+                            No prediction data available. Please go back and fill the form again.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="/" class="btn btn-secondary">← Back to Symptoms Form</a>
+                <button onclick="window.print()" class="btn btn-primary">🖨️ Print Results</button>
+            </div>
+            
+            <!-- Medical Disclaimer -->
+            <div class="disclaimer">
+                <h3>⚠️ Important Medical Disclaimer</h3>
+                <p>Note this prediction is for educational purposes only and should NOT be used as a substitute for professional medical advice. Always consult with a qualified healthcare professional for accurate diagnosis and treatment. In case of emergency symptoms, please seek immediate medical attention.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Prepare data for charts - using proper JSON conversion from Jinja2
+        const topPredictionsData = {{ top_predictions|tojson }};
+        const allPredictionsData = {{ all_predictions|tojson }};
+        
+        // Convert list of tuples to arrays for charts
+        const topPredictions = {
+            labels: topPredictionsData.map(item => item[0]),
+            data: topPredictionsData.map(item => item[1])
+        };
+        
+        const allPredictions = {
+            labels: Object.keys(allPredictionsData),
+            data: Object.values(allPredictionsData)
+        };
+        
+        // Generate colors
+        function generateColors(count) {
+            const colors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+                '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#ABEBC6',
+                '#F5B7B1', '#D5A6BD', '#AED6F1', '#F9E79F', '#D7BDE2'
+            ];
+            return colors.slice(0, count);
+        }
+        
+        // Top 3 Predictions - Bar Chart
+        if (topPredictions.data && topPredictions.data.length > 0) {
+            const ctx1 = document.getElementById('probabilityChart');
+            if (ctx1) {
+                const chartContext = ctx1.getContext('2d');
+                new Chart(chartContext, {
+                    type: 'bar',
+                    data: {
+                        labels: topPredictions.labels,
+                        datasets: [{
+                            label: 'Probability (%)',
+                            data: topPredictions.data,
+                            backgroundColor: generateColors(topPredictions.data.length),
+                            borderColor: '#2c3e50',
+                            borderWidth: 2,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // All Diseases - Doughnut Chart
+        if (allPredictions.data && allPredictions.data.length > 0) {
+            const ctx2 = document.getElementById('allDiseasesChart');
+            if (ctx2) {
+                const chartContext = ctx2.getContext('2d');
+                new Chart(chartContext, {
+                    type: 'doughnut',
+                    data: {
+                        labels: allPredictions.labels,
+                        datasets: [{
+                            data: allPredictions.data,
+                            backgroundColor: generateColors(allPredictions.data.length),
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

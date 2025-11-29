@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .symptoms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+    
+    <script>
+        function updateFeverFields() {
+            const status = document.getElementById('fever_status').value;
+            const durationGroup = document.getElementById('fever_duration_group');
+            const severityGroup = document.getElementById('fever_severity_group');
+            const onsetGroup = document.getElementById('fever_onset_group');
+            const timingGroup = document.getElementById('fever_timing_group');
+            
+            const feverDuration = document.getElementById('fever_duration');
+            const feverSeverity = document.getElementById('fever_severity');
+            const feverOnset = document.getElementById('fever_onset');
+            const feverTiming = document.getElementById('fever_timing');
+            
+            if (status === 'no_fever' || status === 'no_fever_headache') {
+                durationGroup.classList.add('hidden');
+                severityGroup.classList.add('hidden');
+                onsetGroup.classList.add('hidden');
+                timingGroup.classList.add('hidden');
+                
+                feverDuration.value = 0;
+                feverSeverity.value = 0;
+                feverOnset.value = 1;
+                feverTiming.value = 1;
+            } else {
+                durationGroup.classList.remove('hidden');
+                severityGroup.classList.remove('hidden');
+                onsetGroup.classList.remove('hidden');
+                timingGroup.classList.remove('hidden');
+                
+                feverDuration.required = true;
+                feverSeverity.required = true;
+                feverOnset.required = true;
+                feverTiming.required = true;
+            }
+        }
+        
+        function updateHeadacheFields() {
+            const status = document.getElementById('headache_status').value;
+            const durationGroup = document.getElementById('headache_duration_group');
+            const severityGroup = document.getElementById('headache_severity_group');
+            const onsetGroup = document.getElementById('headache_onset_group');
+            const improvesGroup = document.getElementById('headache_improves_group');
+            
+            const headacheDuration = document.getElementById('headache_duration');
+            const headacheSeverity = document.getElementById('headache_severity');
+            const headacheOnset = document.getElementById('headache_onset');
+            const headacheImproves = document.getElementById('headache_improves');
+            
+            if (status === 'no_headache' || status === 'no_headache_fever') {
+                durationGroup.classList.add('hidden');
+                severityGroup.classList.add('hidden');
+                onsetGroup.classList.add('hidden');
+                improvesGroup.classList.add('hidden');
+                
+                headacheDuration.value = 0;
+                headacheSeverity.value = 0;
+                headacheOnset.value = 1;
+                headacheImproves.value = 1;
+            } else {
+                durationGroup.classList.remove('hidden');
+                severityGroup.classList.remove('hidden');
+                onsetGroup.classList.remove('hidden');
+                improvesGroup.classList.remove('hidden');
+                
+                headacheDuration.required = true;
+                headacheSeverity.required = true;
+                headacheOnset.required = true;
+                headacheImproves.required = true;
+            }
+        }
+        
+        function updateCoughFields() {
+            const status = document.getElementById('cough_status').value;
+            const durationGroup = document.getElementById('cough_duration_group');
+            const typeGroup = document.getElementById('cough_type_group');
+            const severityGroup = document.getElementById('cough_severity_group');
+            
+            const coughDuration = document.getElementById('cough_duration');
+            const coughType = document.getElementById('cough_type');
+            const coughSeverity = document.getElementById('cough_severity');
+            
+            if (status === 'no_cough') {
+                durationGroup.classList.add('hidden');
+                typeGroup.classList.add('hidden');
+                severityGroup.classList.add('hidden');
+                
+                coughDuration.value = 0;
+                coughType.value = 1;
+                coughSeverity.value = 0;
+            } else {
+                durationGroup.classList.remove('hidden');
+                typeGroup.classList.remove('hidden');
+                severityGroup.classList.remove('hidden');
+                
+                coughDuration.required = true;
+                coughType.required = true;
+                coughSeverity.required = true;
+            }
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            updateFeverFields();
+            updateHeadacheFields();
+            updateCoughFields();
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Disease Prediction System</h1>
+            <p>Predicts disease based on symptom analysis</p>
+        </div>
+        
+        <div class="form-container">
+            <div class="info-box">
+                <h3>📋 How it works:</h3>
+                <p>Enter your symptoms below. Our AI model will analyze them and predict the most likely diseases with probability scores.</p>
+            </div>
+            
+            <form action="/predict" method="POST">
+                <div class="symptoms-grid">
+                    <!-- Fever Symptoms -->
+                    <div class="form-group">
+                        <label>Fever Status:</label>
+                        <select name="fever_status" id="fever_status" onchange="updateFeverFields()" required>
+                            <option value="no_fever">No Fever</option>
+                            <option value="with_fever">Has Fever</option>
+                            <option value="no_fever_headache">No Fever but Headache</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="fever_duration_group">
+                        <label>Fever Duration (days):</label>
+                        <input type="number" name="fever_duration" id="fever_duration" min="0" max="30" value="0">
+                    </div>
+                    
+                    <div class="form-group" id="fever_severity_group">
+                        <label>Fever Severity:</label>
+                        <select name="fever_severity" id="fever_severity">
+                            <option value="0">No Fever</option>
+                            <option value="1">Mild (99-100°F)</option>
+                            <option value="2">Moderate (100-102°F)</option>
+                            <option value="3">High (>102°F)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="fever_onset_group">
+                        <label>Fever Onset:</label>
+                        <select name="fever_onset" id="fever_onset">
+                            <option value="1">Sudden (within hours)</option>
+                            <option value="2">Gradual (over days)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="fever_timing_group">
+                        <label>Fever Timing:</label>
+                        <select name="fever_timing" id="fever_timing">
+                            <option value="1">Morning</option>
+                            <option value="2">Evening</option>
+                            <option value="3">Throughout day</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Headache Symptoms -->
+                    <div class="form-group">
+                        <label>Headache Status:</label>
+                        <select name="headache_status" id="headache_status" onchange="updateHeadacheFields()" required>
+                            <option value="no_headache">No Headache</option>
+                            <option value="with_headache">Has Headache</option>
+                            <option value="no_headache_fever">Headache but No Fever</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="headache_duration_group">
+                        <label>Headache Duration (days):</label>
+                        <input type="number" name="headache_duration" id="headache_duration" min="0" max="30" value="0">
+                    </div>
+                    
+                    <div class="form-group" id="headache_severity_group">
+                        <label>Headache Severity:</label>
+                        <select name="headache_severity" id="headache_severity">
+                            <option value="0">No Headache</option>
+                            <option value="1">Mild</option>
+                            <option value="2">Moderate</option>
+                            <option value="3">Severe</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="headache_onset_group">
+                        <label>Headache Onset:</label>
+                        <select name="headache_onset" id="headache_onset">
+                            <option value="1">Sudden</option>
+                            <option value="2">Gradual</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="headache_improves_group">
+                        <label>Headache Improves With:</label>
+                        <select name="headache_improves" id="headache_improves">
+                            <option value="1">Rest</option>
+                            <option value="2">Medication</option>
+                            <option value="3">Nothing helps</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Cough Symptoms -->
+                    <div class="form-group">
+                        <label>Cough Status:</label>
+                        <select name="cough_status" id="cough_status" onchange="updateCoughFields()" required>
+                            <option value="no_cough">No Cough</option>
+                            <option value="with_cough">Has Cough</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group hidden" id="cough_duration_group">
+                        <label>Cough Duration (days):</label>
+                        <input type="number" name="cough_duration" id="cough_duration" min="0" max="30" value="0">
+                    </div>
+                    
+                    <div class="form-group hidden" id="cough_type_group">
+                        <label>Cough Type:</label>
+                        <select name="cough_type" id="cough_type">
+                            <option value="1">Dry</option>
+                            <option value="2">Productive (with phlegm)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group hidden" id="cough_severity_group">
+                        <label>Cough Severity:</label>
+                        <select name="cough_severity" id="cough_severity">
+                            <option value="0">No Cough</option>
+                            <option value="1">Mild</option>
+                            <option value="2">Moderate</option>
+                            <option value="3">Severe</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Other Symptoms -->
+                    <div class="form-group">
+                        <label>Age:</label>
+                        <input type="number" name="age" min="1" max="120" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Travel History:</label>
+                        <select name="travel_history" required>
+                            <option value="0">No recent travel</option>
+                            <option value="1">Recent travel</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Body Pain Severity:</label>
+                        <select name="body_pain" required>
+                            <option value="0">No body pain</option>
+                            <option value="1">Mild</option>
+                            <option value="2">Moderate</option>
+                            <option value="3">Severe</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Rash:</label>
+                        <select name="rash" required>
+                            <option value="0">No rash</option>
+                            <option value="1">Has rash</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Chills Severity:</label>
+                        <select name="chills" required>
+                            <option value="0">No chills</option>
+                            <option value="1">Mild</option>
+                            <option value="2">Moderate</option>
+                            <option value="3">Severe</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Breathing Difficulty:</label>
+                        <select name="breathing_difficulty" required>
+                            <option value="0">No difficulty</option>
+                            <option value="1">Mild</option>
+                            <option value="2">Moderate</option>
+                            <option value="3">Severe</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" onclick="validateForm(event)">🔍 Predict Disease</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function validateForm(event) {
+            // Check if at least one symptom is provided
+            const feverStatus = document.getElementById('fever_status').value;
+            const headacheStatus = document.getElementById('headache_status').value;
+            const coughStatus = document.getElementById('cough_status').value;
+            const bodyPain = document.getElementById('body_pain').value;
+            const chills = document.getElementById('chills').value;
+            const breathingDifficulty = document.getElementById('breathing_difficulty').value;
+            const rash = document.getElementById('rash').value;
+            const travelHistory = document.getElementById('travel_history').value;
+            
+            // Count how many symptoms are actually reported
+            const hasFever = feverStatus === 'with_fever' || feverStatus === 'no_fever_headache';
+            const hasHeadache = headacheStatus === 'with_headache' || headacheStatus === 'no_headache_fever';
+            const hasCough = coughStatus === 'with_cough';
+            const hasBodyPain = bodyPain !== '0';
+            const hasChills = chills !== '0';
+            const hasBreathingDifficulty = breathingDifficulty !== '0';
+            const hasRash = rash !== '0';
+            const hasTravel = travelHistory !== '0';
+            
+            const symptomsCount = 
+                (hasFever ? 1 : 0) +
+                (hasHeadache ? 1 : 0) +
+                (hasCough ? 1 : 0) +
+                (hasBodyPain ? 1 : 0) +
+                (hasChills ? 1 : 0) +
+                (hasBreathingDifficulty ? 1 : 0) +
+                (hasRash ? 1 : 0) +
+                (hasTravel ? 1 : 0);
+            
+            if (symptomsCount === 0) {
+                event.preventDefault();
+                alert('⚠️ Please select at least ONE symptom before making a prediction!\n\nExamples:\n• Select "Has Fever" for fever status\n• Select "Has Headache" for headache status\n• Select "Has Cough" for cough status\n• Or indicate body pain, chills, etc.');
+                return false;
+            }
+            
+            // Form is valid, let it submit
+            return true;
+        }
+        
+        window.addEventListener('DOMContentLoaded', function() {
+            updateFeverFields();
+            updateHeadacheFields();
+            updateCoughFields();
+        });
+    </script>
+</body>
+</html>
